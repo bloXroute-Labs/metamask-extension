@@ -173,7 +173,7 @@ export default function TransactionListItem({
               <>
                 <Tooltip
                   position="top"
-                  title="Private"
+                  title="Private transaction submitted to bloXroute"
                   wrapperClassName={classnames(
                     'transaction-status',
                     'transaction-status--dropped',

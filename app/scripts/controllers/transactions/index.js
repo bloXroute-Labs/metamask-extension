@@ -199,9 +199,10 @@ export default class TransactionController extends EventEmitter {
                 )
               }
               return resolve(finishedTxMeta.hash)
-            case TRANSACTION_STATUSES.APPROVED:
+            case TRANSACTION_STATUSES.SIGNED:
               if (opts.signOnly) {
-                return resolve(finishedTxMeta.hash)
+                console.log(`Returning signed transaction: ${JSON.stringify(finishedTxMeta)}`)
+                return resolve(finishedTxMeta.rawTx)
               }
               return reject(
                 cleanErrorStack(
@@ -266,7 +267,7 @@ export default class TransactionController extends EventEmitter {
       type: TRANSACTION_TYPES.STANDARD,
       privateTx: txParams.privateTx,
       privateTxTimeout: txParams.privateTxTimeout,
-      signOnly
+      signOnly,
     })
 
     if (origin === 'metamask') {
@@ -557,7 +558,12 @@ export default class TransactionController extends EventEmitter {
       this.txStateManager.updateTx(txMeta, 'transactions#approveTransaction')
       // sign transaction
       const rawTx = await this.signTransaction(txId)
-      await this.publishTransaction(txId, rawTx)
+
+      if (txMeta.signOnly) {
+       await this.txStateManager.emitTransactionComplete(txId)
+      } else {
+        await this.publishTransaction(txId, rawTx)
+      }
       // must set transaction to submitted/failed before releasing lock
       nonceLock.releaseLock()
     } catch (err) {

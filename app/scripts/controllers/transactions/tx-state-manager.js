@@ -455,6 +455,18 @@ export default class TransactionStateManager extends EventEmitter {
   }
 
   /**
+   * Emits the "finished" event for the txId.
+   * Bypasses the normal process of emitting the event only on transaction
+   * submission or rejection.
+   *
+   * @param {number} txId - the txMeta Id
+   */
+  emitTransactionComplete(txId) {
+    const txMeta = this.getTx(txId)
+    this.emit(`${txMeta.id}:finished`, txMeta)
+  }
+
+  /**
    * Removes transaction from the given address for the current network
    * from the txList
    * @param {string} address - hex string of the from address on the txParams

@@ -461,8 +461,9 @@ export default class TransactionStateManager extends EventEmitter {
    *
    * @param {number} txId - the txMeta Id
    */
-  emitTransactionComplete(txId) {
+  emitTransactionComplete(txId, rawTx) {
     const txMeta = this.getTx(txId)
+    txMeta.rawTx = rawTx
     this.emit(`${txMeta.id}:finished`, txMeta)
   }
 

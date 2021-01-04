@@ -201,7 +201,6 @@ export default class TransactionController extends EventEmitter {
               return resolve(finishedTxMeta.hash)
             case TRANSACTION_STATUSES.SIGNED:
               if (opts.signOnly) {
-                console.log(`Returning signed transaction: ${JSON.stringify(finishedTxMeta)}`)
                 return resolve(finishedTxMeta.rawTx)
               }
               return reject(
@@ -560,7 +559,7 @@ export default class TransactionController extends EventEmitter {
       const rawTx = await this.signTransaction(txId)
 
       if (txMeta.signOnly) {
-       await this.txStateManager.emitTransactionComplete(txId)
+        await this.txStateManager.emitTransactionComplete(txId, rawTx)
       } else {
         await this.publishTransaction(txId, rawTx)
       }

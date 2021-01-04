@@ -177,6 +177,7 @@ export default class TransactionController extends EventEmitter {
     const initialTxMeta = await this.addUnapprovedTransaction(
       txParams,
       opts.origin,
+      opts.signOnly,
     )
 
     // listen for tx completion (success, fail)
@@ -186,7 +187,32 @@ export default class TransactionController extends EventEmitter {
         (finishedTxMeta) => {
           switch (finishedTxMeta.status) {
             case TRANSACTION_STATUSES.SUBMITTED:
+              if (opts.signOnly) {
+                return reject(
+                  cleanErrorStack(
+                    ethErrors.provider.custom({
+                      code: 4002,
+                      message:
+                        'MetaMask transaction was unexpectedly sent to the network.',
+                    }),
+                  ),
+                )
+              }
               return resolve(finishedTxMeta.hash)
+            case TRANSACTION_STATUSES.APPROVED:
+              if (opts.signOnly) {
+                return resolve(finishedTxMeta.hash)
+              }
+              return reject(
+                cleanErrorStack(
+                  ethErrors.provider.custom({
+                    code: 4002,
+                    message:
+                      'MetaMask transaction was not successfully submitted.',
+                  }),
+                ),
+              )
+
             case TRANSACTION_STATUSES.REJECTED:
               return reject(
                 cleanErrorStack(
@@ -223,7 +249,7 @@ export default class TransactionController extends EventEmitter {
    *
    * @returns {txMeta}
    */
-  async addUnapprovedTransaction(txParams, origin) {
+  async addUnapprovedTransaction(txParams, origin, signOnly) {
     // validate
     const normalizedTxParams = txUtils.normalizeTxParams(txParams)
 
@@ -240,6 +266,7 @@ export default class TransactionController extends EventEmitter {
       type: TRANSACTION_TYPES.STANDARD,
       privateTx: txParams.privateTx,
       privateTxTimeout: txParams.privateTxTimeout,
+      signOnly
     })
 
     if (origin === 'metamask') {

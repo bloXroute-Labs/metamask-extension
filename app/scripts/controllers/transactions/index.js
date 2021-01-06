@@ -109,6 +109,9 @@ export default class TransactionController extends EventEmitter {
         const approved = this.txStateManager.getApprovedTransactions()
         return [...pending, ...approved]
       },
+      getSignedTransactions: this.txStateManager.getSignedTransactions.bind(
+       this.txStateManager
+      ),
       approveTransaction: this.approveTransaction.bind(this),
       getCompletedTransactions: this.txStateManager.getConfirmedTransactions.bind(
         this.txStateManager,

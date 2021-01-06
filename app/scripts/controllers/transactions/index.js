@@ -92,7 +92,7 @@ export default class TransactionController extends EventEmitter {
     this.nonceTracker = new NonceTracker({
       provider: this.provider,
       blockTracker: this.blockTracker,
-      getPendingTransactions: this.txStateManager.getPendingTransactions.bind(
+      getPendingTransactions: this.txStateManager.getSignedTransactions.bind(
         this.txStateManager,
       ),
       getConfirmedTransactions: this.txStateManager.getConfirmedTransactions.bind(
@@ -1027,11 +1027,11 @@ export default class TransactionController extends EventEmitter {
     updateSubscription()
 
     function updateSubscription() {
-      const pendingTxs = txStateManager.getPendingTransactions()
-      if (!listenersAreActive && pendingTxs.length > 0) {
+      const signedTxs = txStateManager.getSignedTransactions()
+      if (!listenersAreActive && signedTxs.length > 0) {
         blockTracker.on('latest', latestBlockHandler)
         listenersAreActive = true
-      } else if (listenersAreActive && !pendingTxs.length) {
+      } else if (listenersAreActive && !signedTxs.length) {
         blockTracker.removeListener('latest', latestBlockHandler)
         listenersAreActive = false
       }

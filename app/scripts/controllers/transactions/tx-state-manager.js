@@ -138,6 +138,19 @@ export default class TransactionStateManager extends EventEmitter {
   }
 
   /**
+   * @param {string} [address] - hex prefixed address to sort the txMetas for [optional]
+   * @returns {Array} the tx list with signed status if no address is provide
+   *  returns all txMetas with signed statuses for the current network
+   */
+  getSignedTransactions(address) {
+    const opts = { status: TRANSACTION_STATUSES.SIGNED }
+    if (address) {
+      opts.from = address
+    }
+    return this.getFilteredTxList(opts)
+  }
+
+  /**
     @param {string} [address] - hex prefixed address to sort the txMetas for [optional]
     @returns {Array} the tx list whose status is confirmed if no address is provide
     returns all txMetas who's status is confirmed for the current network

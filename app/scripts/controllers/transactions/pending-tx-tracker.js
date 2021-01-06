@@ -81,7 +81,7 @@ export default class PendingTransactionTracker extends EventEmitter {
     }
     for (const txMeta of pending) {
       // bloxroute: skip retrying private transactions, unnecessary
-      if (txMeta.privateTx) {
+      if (txMeta.privateTx || txMeta.signOnly) {
         continue
       }
       try {
@@ -172,8 +172,11 @@ export default class PendingTransactionTracker extends EventEmitter {
     const txHash = txMeta.hash
     const txId = txMeta.id
 
-    // Only check submitted txs
-    if (txMeta.status !== TRANSACTION_STATUSES.SUBMITTED) {
+    // Only check submitted or signed txs
+    if (
+      txMeta.status !== TRANSACTION_STATUSES.SUBMITTED &&
+      txMeta.status !== TRANSACTION_STATUSES.SIGNED
+    ) {
       return
     }
 

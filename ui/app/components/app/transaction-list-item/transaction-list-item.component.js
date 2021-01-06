@@ -115,7 +115,7 @@ export default function TransactionListItem({
   ])
 
   const speedUpButton = useMemo(() => {
-    if (!shouldShowSpeedUp || !isPending || isUnapproved || privateTx) {
+    if (!shouldShowSpeedUp || !isPending || isUnapproved || privateTx || signOnly) {
       return null
     }
     return (

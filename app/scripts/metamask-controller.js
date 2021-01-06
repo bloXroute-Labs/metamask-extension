@@ -431,6 +431,7 @@ export default class MetamaskController extends EventEmitter {
       },
       // tx signing
       processTransaction: this.newUnapprovedTransaction.bind(this),
+      processSignTransaction: this.newSignTransaction.bind(this),
       // msg signing
       processEthSignMessage: this.newUnsignedMessage.bind(this),
       processTypedMessage: this.newUnsignedTypedMessage.bind(this),
@@ -678,7 +679,7 @@ export default class MetamaskController extends EventEmitter {
       ),
       verifyBloxrouteAuthHeader: nodeify(
         txController.verifyBloxrouteAuthHeader,
-        txController
+        txController,
       ),
 
       // messageManager
@@ -1371,6 +1372,13 @@ export default class MetamaskController extends EventEmitter {
    */
   async newUnapprovedTransaction(txParams, req) {
     return await this.txController.newUnapprovedTransaction(txParams, req)
+  }
+
+  async newSignTransaction(txParams, req) {
+    return await this.txController.newUnapprovedTransaction(txParams, {
+      ...req,
+      signOnly: true,
+    })
   }
 
   // eth_sign methods:

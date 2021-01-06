@@ -55,6 +55,8 @@ export default function TransactionListItem({
     displayedStatusKey,
     isPending,
     senderAddress,
+    signOnly,
+    origin,
   } = useTransactionDisplayData(transactionGroup)
 
   const isSignatureReq =
@@ -113,7 +115,7 @@ export default function TransactionListItem({
   ])
 
   const speedUpButton = useMemo(() => {
-    if (!shouldShowSpeedUp || !isPending || isUnapproved || privateTx) {
+    if (!shouldShowSpeedUp || !isPending || isUnapproved || privateTx || signOnly) {
       return null
     }
     return (
@@ -133,6 +135,7 @@ export default function TransactionListItem({
     isPending,
     retryTransaction,
     privateTx,
+    signOnly,
   ])
 
   const makePublicButton = useMemo(() => {
@@ -168,12 +171,14 @@ export default function TransactionListItem({
               error={err}
               date={date}
               status={displayedStatusKey}
+              signOnly={signOnly}
+              origin={origin}
             />
             {privateTx && (
               <>
                 <Tooltip
                   position="top"
-                  title="Private"
+                  title="Private transaction submitted to bloXroute"
                   wrapperClassName={classnames(
                     'transaction-status',
                     'transaction-status--dropped',

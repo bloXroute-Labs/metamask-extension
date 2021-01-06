@@ -92,7 +92,7 @@ export default class TransactionController extends EventEmitter {
     this.nonceTracker = new NonceTracker({
       provider: this.provider,
       blockTracker: this.blockTracker,
-      getPendingTransactions: this.txStateManager.getPendingTransactions.bind(
+      getPendingTransactions: this.txStateManager.getSignedTransactions.bind(
         this.txStateManager,
       ),
       getConfirmedTransactions: this.txStateManager.getConfirmedTransactions.bind(
@@ -109,6 +109,9 @@ export default class TransactionController extends EventEmitter {
         const approved = this.txStateManager.getApprovedTransactions()
         return [...pending, ...approved]
       },
+      getSignedTransactions: this.txStateManager.getSignedTransactions.bind(
+       this.txStateManager,
+      ),
       approveTransaction: this.approveTransaction.bind(this),
       getCompletedTransactions: this.txStateManager.getConfirmedTransactions.bind(
         this.txStateManager,
@@ -177,6 +180,7 @@ export default class TransactionController extends EventEmitter {
     const initialTxMeta = await this.addUnapprovedTransaction(
       txParams,
       opts.origin,
+      opts.signOnly,
     )
 
     // listen for tx completion (success, fail)
@@ -186,7 +190,32 @@ export default class TransactionController extends EventEmitter {
         (finishedTxMeta) => {
           switch (finishedTxMeta.status) {
             case TRANSACTION_STATUSES.SUBMITTED:
+              if (opts.signOnly) {
+                return reject(
+                  cleanErrorStack(
+                    ethErrors.provider.custom({
+                      code: 4002,
+                      message:
+                        'MetaMask transaction was unexpectedly sent to the network.',
+                    }),
+                  ),
+                )
+              }
               return resolve(finishedTxMeta.hash)
+            case TRANSACTION_STATUSES.SIGNED:
+              if (opts.signOnly) {
+                return resolve(finishedTxMeta.rawTx)
+              }
+              return reject(
+                cleanErrorStack(
+                  ethErrors.provider.custom({
+                    code: 4002,
+                    message:
+                      'MetaMask transaction was not successfully submitted.',
+                  }),
+                ),
+              )
+
             case TRANSACTION_STATUSES.REJECTED:
               return reject(
                 cleanErrorStack(
@@ -223,7 +252,7 @@ export default class TransactionController extends EventEmitter {
    *
    * @returns {txMeta}
    */
-  async addUnapprovedTransaction(txParams, origin) {
+  async addUnapprovedTransaction(txParams, origin, signOnly) {
     // validate
     const normalizedTxParams = txUtils.normalizeTxParams(txParams)
 
@@ -240,6 +269,7 @@ export default class TransactionController extends EventEmitter {
       type: TRANSACTION_TYPES.STANDARD,
       privateTx: txParams.privateTx,
       privateTxTimeout: txParams.privateTxTimeout,
+      signOnly,
     })
 
     if (origin === 'metamask') {
@@ -530,7 +560,12 @@ export default class TransactionController extends EventEmitter {
       this.txStateManager.updateTx(txMeta, 'transactions#approveTransaction')
       // sign transaction
       const rawTx = await this.signTransaction(txId)
-      await this.publishTransaction(txId, rawTx)
+
+      if (txMeta.signOnly) {
+        await this.txStateManager.emitTransactionComplete(txId, rawTx)
+      } else {
+        await this.publishTransaction(txId, rawTx)
+      }
       // must set transaction to submitted/failed before releasing lock
       nonceLock.releaseLock()
     } catch (err) {
@@ -995,11 +1030,11 @@ export default class TransactionController extends EventEmitter {
     updateSubscription()
 
     function updateSubscription() {
-      const pendingTxs = txStateManager.getPendingTransactions()
-      if (!listenersAreActive && pendingTxs.length > 0) {
+      const signedTxs = txStateManager.getSignedTransactions()
+      if (!listenersAreActive && signedTxs.length > 0) {
         blockTracker.on('latest', latestBlockHandler)
         listenersAreActive = true
-      } else if (listenersAreActive && !pendingTxs.length) {
+      } else if (listenersAreActive && !signedTxs.length) {
         blockTracker.removeListener('latest', latestBlockHandler)
         listenersAreActive = false
       }

@@ -55,6 +55,8 @@ export default function TransactionListItem({
     displayedStatusKey,
     isPending,
     senderAddress,
+    signOnly,
+    origin,
   } = useTransactionDisplayData(transactionGroup)
 
   const isSignatureReq =
@@ -168,6 +170,8 @@ export default function TransactionListItem({
               error={err}
               date={date}
               status={displayedStatusKey}
+              signOnly={signOnly}
+              origin={origin}
             />
             {privateTx && (
               <>

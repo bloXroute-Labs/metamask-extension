@@ -110,7 +110,7 @@ export default class TransactionController extends EventEmitter {
         return [...pending, ...approved]
       },
       getSignedTransactions: this.txStateManager.getSignedTransactions.bind(
-       this.txStateManager
+       this.txStateManager,
       ),
       approveTransaction: this.approveTransaction.bind(this),
       getCompletedTransactions: this.txStateManager.getConfirmedTransactions.bind(

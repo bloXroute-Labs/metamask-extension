@@ -9,6 +9,8 @@ import {
   snapshotFromTxMeta,
 } from './lib/tx-state-history-helpers'
 import { getFinalStates, normalizeTxParams } from './lib/util'
+import ethUtil from 'ethereumjs-util'
+import { addHexPrefix } from '../../lib/util'
 
 /**
  * TransactionStatuses reimported from the shared transaction constants file
@@ -475,8 +477,15 @@ export default class TransactionStateManager extends EventEmitter {
    * @param {number} txId - the txMeta Id
    */
   emitTransactionComplete(txId, rawTx) {
+    // set transaction hash
+    let txHash = ethUtil.sha3(addHexPrefix(rawTx)).toString('hex')
+    txHash = addHexPrefix(txHash)
+    this.setTxHash(txHash)
+
+    // set raw transaction info
     const txMeta = this.getTx(txId)
     txMeta.rawTx = rawTx
+
     this.emit(`${txMeta.id}:finished`, txMeta)
   }
 

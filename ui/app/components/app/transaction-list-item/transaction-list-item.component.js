@@ -53,6 +53,8 @@ export default function TransactionListItem({
     displayedStatusKey,
     isPending,
     senderAddress,
+    signOnly,
+    origin,
   } = useTransactionDisplayData(transactionGroup)
 
   const isSignatureReq =
@@ -111,7 +113,7 @@ export default function TransactionListItem({
   ])
 
   const speedUpButton = useMemo(() => {
-    if (!shouldShowSpeedUp || !isPending || isUnapproved) {
+    if (!shouldShowSpeedUp || !isPending || isUnapproved || signOnly) {
       return null
     }
     return (
@@ -124,7 +126,14 @@ export default function TransactionListItem({
         {t('speedUp')}
       </Button>
     )
-  }, [shouldShowSpeedUp, isUnapproved, t, isPending, retryTransaction])
+  }, [
+    shouldShowSpeedUp,
+    isUnapproved,
+    t,
+    isPending,
+    retryTransaction,
+    signOnly,
+  ])
 
   return (
     <>
@@ -143,6 +152,8 @@ export default function TransactionListItem({
               error={err}
               date={date}
               status={displayedStatusKey}
+              signOnly={signOnly}
+              origin={origin}
             />
             <span
               className={

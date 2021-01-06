@@ -135,6 +135,7 @@ export default function TransactionListItem({
     isPending,
     retryTransaction,
     privateTx,
+    signOnly,
   ])
 
   const makePublicButton = useMemo(() => {
